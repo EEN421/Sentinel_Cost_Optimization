@@ -4,9 +4,9 @@
     {
       "type": 1,
       "content": {
-        "json": "## KMicro Tech, Inc. Sentinel Reporting\n\n![HanleyCloudFooter](https://github.com/EEN421/EEN421.github.io/blob/master/assets/img/footer.png?raw=true)\n\nWelcome to your cybersecurity reporting dashboard. Use the parameters below to adjust the time range, workspace, and cost settings."
+        "json": "## Hanley Cloud Solutions Sentinel Reporting\n\n![HanleyCloudFooter](https://github.com/EEN421/EEN421.github.io/blob/master/assets/img/footer.png?raw=true)\n\nWelcome to your cybersecurity reporting dashboard. Use the parameters below to adjust the time range, workspace, and cost settings."
       },
-      "name": "KMicro Sentinel Workbook Header"
+      "name": "Hanley Cloud Solutions Workbook Header"
     },
     {
       "type": 9,
