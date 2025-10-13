@@ -1,17 +1,18 @@
 source
 | where DeviceVendor == "Fortinet" or DeviceProduct startswith "Fortigate"
-| extend _msg_msg = tostring(columnifexists("Message",""))
-| extend _msg_act = tostring(columnifexists("Activity",""))
-| extend _msg = iff(isnotempty(_msg_msg), _msg_msg, _msg_act)
-| where _msg !has "traffic:forward close"
-| where _msg !has "traffic:forward client-rst"
-| where _msg !has "traffic:forward server-rst"
-| where _msg !has "traffic:forward timeout"
-| where _msg !has "traffic:forward cancel"
-| where _msg !has "traffic:forward client-fin"
-| where _msg !has "traffic:forward server-fin"
-| where _msg !has "traffic:local close"
-| where _msg !has "traffic:local client-rst"
-| where _msg !has "traffic:local timeout"
-| where _msg !has "traffic:local server-rst"
-| project-away _msg_msg, _msg_act
+| extend tmpMsg = tostring(columnifexists("Message",""))
+| extend tmpAct = tostring(columnifexists("Activity",""))
+| extend tmpCombined = iff(isnotempty(tmpMsg), tmpMsg, tmpAct)
+// Exclude connection teardown/close events at ingest
+| where tmpCombined !has "traffic:forward close"
+| where tmpCombined !has "traffic:forward client-rst"
+| where tmpCombined !has "traffic:forward server-rst"
+| where tmpCombined !has "traffic:forward timeout"
+| where tmpCombined !has "traffic:forward cancel"
+| where tmpCombined !has "traffic:forward client-fin"
+| where tmpCombined !has "traffic:forward server-fin"
+| where tmpCombined !has "traffic:local close"
+| where tmpCombined !has "traffic:local client-rst"
+| where tmpCombined !has "traffic:local timeout"
+| where tmpCombined !has "traffic:local server-rst"
+| project-away tmpMsg, tmpAct, tmpCombined
