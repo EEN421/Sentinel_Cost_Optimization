@@ -16,3 +16,64 @@ source
 | where tmpCombined !has "traffic:local timeout"
 | where tmpCombined !has "traffic:local server-rst"
 | project-away tmpMsg, tmpAct, tmpCombined
+
+
+---
+
+//breakdown:
+
+// Start from your chosen source table (e.g., CommonSecurityLog, Syslog, etc.).
+source 
+
+// Keep only Fortinet events; match explicit vendor name or products that start with “Fortigate”.
+| where DeviceVendor == "Fortinet" or DeviceProduct startswith "Fortigate"
+
+// Create a temp column from Message if it exists; otherwise default to empty string.
+// columnifexists() prevents runtime errors when a column is missing.
+| extend tmpMsg = tostring(columnifexists("Message",""))
+
+// Same idea for the Activity field (some connectors use Activity instead of Message).
+| extend tmpAct = tostring(columnifexists("Activity",""))
+
+// Combine the two: prefer Message when it’s non-empty; otherwise fall back to Activity.
+// iff() is KQL’s inline if; isnotempty() checks for null/blank.
+| extend tmpCombined = iff(isnotempty(tmpMsg), tmpMsg, tmpAct)
+
+// ------- Network teardown / close signals to EXCLUDE at ingest -------
+
+// Exclude “forward” path closes (generic close).
+// `has` is token-based, case-insensitive; good for structured text with clear word boundaries.
+| where tmpCombined !has "traffic:forward close"
+
+// Exclude client-initiated resets on forward traffic.
+| where tmpCombined !has "traffic:forward client-rst"
+
+// Exclude server-initiated resets on forward traffic.
+| where tmpCombined !has "traffic:forward server-rst"
+
+// Exclude idle/timeout closes on forward traffic.
+| where tmpCombined !has "traffic:forward timeout"
+
+// Exclude user/admin or system cancellations on forward traffic.
+| where tmpCombined !has "traffic:forward cancel"
+
+// Exclude FIN-based client closes on forward traffic.
+| where tmpCombined !has "traffic:forward client-fin"
+
+// Exclude FIN-based server closes on forward traffic.
+| where tmpCombined !has "traffic:forward server-fin"
+
+// Exclude “local” (device-originated) generic close events.
+| where tmpCombined !has "traffic:local close"
+
+// Exclude client resets on local traffic.
+| where tmpCombined !has "traffic:local client-rst"
+
+// Exclude timeouts on local traffic.
+| where tmpCombined !has "traffic:local timeout"
+
+// Exclude server resets on local traffic.
+| where tmpCombined !has "traffic:local server-rst"
+
+// Drop the temp helper columns so they don’t flow downstream or get stored.
+| project-away tmpMsg, tmpAct, tmpCombined
