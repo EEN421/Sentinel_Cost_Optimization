@@ -1,32 +1,8 @@
 // Author: Ian D. Hanley | LinkedIn: /in/ianhanley/ | Twitter: @IanDHanley | Github: https://github.com/EEN421 | Blog: Hanley.cloud / DevSecOpsDad.com
 // This KQL filter targets Fortinet/Fortigate logs and removes connection teardown or session-close events (like FINs, resets, and timeouts) at ingestion, ensuring only active or meaningful network traffic is retained for analysis.
 
-source
-| where DeviceVendor == "Fortinet" or DeviceProduct startswith "Fortigate"
-| extend tmpMsg = tostring(columnifexists("Message",""))
-| extend tmpAct = tostring(columnifexists("Activity",""))
-| extend tmpCombined = iff(isnotempty(tmpMsg), tmpMsg, tmpAct)
-// Exclude connection teardown/close events at ingest
-| where tmpCombined !has "traffic:forward close"
-| where tmpCombined !has "traffic:forward client-rst"
-| where tmpCombined !has "traffic:forward server-rst"
-| where tmpCombined !has "traffic:forward timeout"
-| where tmpCombined !has "traffic:forward cancel"
-| where tmpCombined !has "traffic:forward client-fin"
-| where tmpCombined !has "traffic:forward server-fin"
-| where tmpCombined !has "traffic:local close"
-| where tmpCombined !has "traffic:local client-rst"
-| where tmpCombined !has "traffic:local timeout"
-| where tmpCombined !has "traffic:local server-rst"
-| project-away tmpMsg, tmpAct, tmpCombined
 
-
----
-
-//breakdown:
-
-// Start from your chosen source table (e.g., CommonSecurityLog, Syslog, etc.).
-source 
+source   // Start from your chosen source table (e.g., CommonSecurityLog, Syslog, etc.).
 | where DeviceVendor == "Fortinet" or DeviceProduct startswith "Fortigate"  // Keep only Fortinet events; match explicit vendor name or products that start with “Fortigate”.
 | extend tmpMsg = tostring(columnifexists("Message",""))    // Create a temp column from Message if it exists; otherwise default to empty string. columnifexists() prevents runtime errors when a column is missing.
 | extend tmpAct = tostring(columnifexists("Activity",""))  // Same idea for the Activity field (some connectors use Activity instead of Message).
